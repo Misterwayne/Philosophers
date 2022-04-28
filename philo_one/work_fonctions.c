@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   work_fonctions.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: truepath <truepath@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mwane <mwane@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/18 20:25:27 by truepath          #+#    #+#             */
-/*   Updated: 2021/02/19 13:47:53 by truepath         ###   ########.fr       */
+/*   Updated: 2022/04/28 15:13:40 by mwane            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,54 +15,59 @@
 #include <stdlib.h>
 #include <string.h>
 
-int     philo_eat(t_philo *sage, long count)
-{
-    char buffer[60];
+int     philo_eat(t_philo *sage)
+{   
+    long    time;
     
     pthread_mutex_lock(&sage->table->forks[sage->l_fork]);
     pthread_mutex_lock(&sage->table->forks[sage->r_fork]);
-    sage->table->number_of_time_each_must_eat -= 1;
-    sprintf(buffer, "%ld ms : philo %d has taken forks %d and %d\n", count, sage->number, sage->l_fork, sage->r_fork);
-    write(1, buffer, strlen(buffer));
-    sprintf(buffer, "%ld ms : philo %d is eating\n", count, sage->number);
-    write(1, buffer, strlen(buffer));
-    gettimeofday(&sage->reset, NULL);
-    sage->last_meal_time = (sage->reset.tv_sec-sage->save.tv_sec) * 1000000 + sage->reset.tv_usec-sage->save.tv_usec;
+    pthread_mutex_lock(&sage->table->print);
     sage->state = 1;
-    usleep(sage->table->time_to_eat);
-    gettimeofday(&sage->save, NULL);
-    sprintf(buffer, "%ld ms : philo %d has droped forks %d and %d\n", count, sage->number, sage->l_fork, sage->r_fork);
-    write(1, buffer, strlen(buffer));
+    if (sage->table->number_of_time_each_must_eat)
+        sage->table->number_of_time_each_must_eat -= 1;
+    time = givetime(sage->og_time);
+    printf("%ld ms : philo %d has taken forks %d and %d\n", time, sage->number, sage->l_fork, sage->r_fork);
+    pthread_mutex_unlock(&sage->table->print);
+    print_msg(sage);
+    usleep(sage->table->time_to_eat * 1000);
+    sage->last_meal_time = givetime(0);
+    pthread_mutex_lock(&sage->table->print);
+    time = givetime(sage->og_time);
+    printf("%ld ms : philo %d has droped forks %d and %d\n", time, sage->number, sage->l_fork, sage->r_fork);
+    pthread_mutex_unlock(&sage->table->print);
     pthread_mutex_unlock(&sage->table->forks[sage->l_fork]);
     pthread_mutex_unlock(&sage->table->forks[sage->r_fork]);
     return (0);
 }
 
-void    philo_sleep(t_philo *sage, long count)
+void    philo_sleep(t_philo *sage)
 {
-    char buffer[60];
-
-    sprintf(buffer, "%ld ms : philo %d is sleeping\n", count, sage->number);
-    write(1, buffer, strlen(buffer));
     sage->state = 2;
-    usleep(sage->table->time_to_sleep);
+    print_msg(sage);
+    usleep(sage->table->time_to_sleep * 1000);
 }
 
-int    philo_dead(t_philo *sage, long count)
+int    philo_dead(t_philo *sage)
 {
-    char buffer[60];
+    int i;
 
-    sprintf(buffer, "%ld ms : philo %d is dead\n", count, sage->number);
-    write(1, buffer, strlen(buffer));
-    sage->state = 3;
-    pthread_exit(NULL);
+    i = 0;
+    while (i < sage->table->number_of_philos)
+    {
+        if (givetime(sage->table->philos[i].last_meal_time) >= sage->table->time_to_die
+        || sage->table->number_of_time_each_must_eat == 0)
+        {
+            sage->state = 3;
+            print_msg(sage);
+            return (0);
+        }
+        i++;
+    }
+    return (1);
 }
 
-void    philo_think(t_philo *sage, long count)
+void    philo_think(t_philo *sage)
 {
-    char buffer[60];
-
-    sprintf(buffer, "%ld ms : philo %d is thinking\n", count, sage->number);
-    write(1, buffer, strlen(buffer));
     sage->state = 0;
+    print_msg(sage);
 }

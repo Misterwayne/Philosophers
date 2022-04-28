@@ -3,36 +3,48 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: truepath <truepath@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mwane <mwane@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/18 21:05:31 by truepath          #+#    #+#             */
-/*   Updated: 2021/02/18 22:55:45 by truepath         ###   ########.fr       */
+/*   Updated: 2022/04/26 17:05:15 by mwane            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo_one.h"
 
-void    check_argv(char **argv)
+int     ft_strlen(char *str)
 {
-    if (argv[1] == NULL)
-        argv[1] = "3";
-    if (argv[2] == NULL)
-        argv[2] = "6";
-    if (argv[3] == NULL)
-        argv[3] = "1";
-    if (argv[4] == NULL)
-        argv[4] = "1";
-    if (argv[5] == NULL)
-        argv[5] = "20000000";
+    int i;
+
+    i = 0;
+    while(str[i])
+        i++;
+    return (i);
+}
+
+void    error_exit(char *error_msg)
+{
+    write(2, "Error :", ft_strlen("Error :"));
+    write(2, error_msg, ft_strlen(error_msg));
+    exit(1);
+}
+
+void    check_argv(int argc, char **argv)
+{
+    int i;
+
+    i = 1;
+    if (argc < 4)
+        error_exit("too few argument\n");
+    while (argv[i] != NULL)
+    {
+        if (atoi(argv[i]) <= 0)
+            error_exit("non numeric argument\n");
+        i++;
+    }
     return ;
 }
 
-int     free_stuff(t_table *table)
-{
-    // pthread_mutex_destroy(table->forks);
-    // // free(&table->forks);
-    return (0);
-}
 
 void    print_table_struct(t_table *table)
 {

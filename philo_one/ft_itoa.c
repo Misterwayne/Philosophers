@@ -6,12 +6,11 @@
 /*   By: mwane <mwane@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/14 17:01:31 by mwane             #+#    #+#             */
-/*   Updated: 2019/10/18 11:36:27 by mwane            ###   ########.fr       */
+/*   Updated: 2022/04/26 16:25:36 by mwane            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdlib.h>
-#include <stdio.h>
+#include "philo_one.h"
 
 static int		get_str_len(long nbr)
 {

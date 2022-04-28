@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo_one.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: truepath <truepath@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mwane <mwane@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/19 20:21:48 by truepath          #+#    #+#             */
-/*   Updated: 2021/02/21 20:16:32 by truepath         ###   ########.fr       */
+/*   Updated: 2022/04/27 17:40:00 by mwane            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ typedef struct      s_philo
     int             state;
     pthread_t       threads;
     struct s_table  *table;
+    long            og_time;
 }                   t_philo;
 
 typedef struct      s_table
@@ -41,19 +42,21 @@ typedef struct      s_table
     int             time_to_eat;
     struct s_philo  *philos;
     pthread_mutex_t *forks;
+    pthread_mutex_t print;
 }                   t_table;
 
 
-int                 load_arg(t_table *table, char **argv);
-void                print_table_struct(t_table *table);
+int                 load_arg(int argc, t_table *table, char **argv);
+int                 givetime(long time);
+void                print_msg(t_philo *philo);
 void                print_states(t_table *table);
 int                 eat(t_philo *sage, long count);
-void                check_argv(char **argv);
+void                check_argv(int argc, char **argv);
 int                 free_stuff(t_table *table);
 void                print_table_struct(t_table *table);
-int                 philo_eat(t_philo *sage, long count);
-void                philo_sleep(t_philo *sage, long count);
-int                 philo_dead(t_philo *sage, long count);
-void                philo_think(t_philo *sage, long count);
-int                 set_argv(char **argv, t_table *table);
+int                 philo_eat(t_philo *sage);
+void                philo_sleep(t_philo *sage);
+int                 philo_dead(t_philo *sage);
+void                philo_think(t_philo *sage);
+int                 set_argv(int argc, char **argv, t_table *table);
 char			    *ft_itoa(int n);

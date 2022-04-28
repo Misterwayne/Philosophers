@@ -3,40 +3,53 @@
 /*                                                        :::      ::::::::   */
 /*   philo_one.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: truepath <truepath@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mwane <mwane@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/19 20:12:04 by truepath          #+#    #+#             */
-/*   Updated: 2021/02/21 22:25:40 by truepath         ###   ########.fr       */
+/*   Updated: 2022/04/28 15:23:35 by mwane            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo_one.h"
 
+void    print_msg(t_philo *philo)
+{
+    long    time;
+
+    pthread_mutex_lock(&philo->table->print);
+    time = givetime(philo->og_time);
+    if (philo->state == 1)
+        printf("%ld ms : philo %d is eating\n", time, philo->number);
+    if (philo->state == 2)
+        printf("%ld ms : philo %d is sleeping\n", time, philo->number);
+    if (philo->state == 0)
+        printf("%ld ms : philo %d is thinking\n", time, philo->number);
+    if (philo->state == 3)
+        printf("%ld ms : philo %d is dead\n", time, philo->number);
+    pthread_mutex_unlock(&philo->table->print);
+}
+
 void    *work(void *argv)
 {
     t_philo     *sage;
-    long        count;
-    int         i;
-    
-    i = 0;
+
     sage = argv;
     gettimeofday(&sage->start, NULL);
     gettimeofday(&sage->save, NULL);
-    sage->last_meal_time = sage->start.tv_sec;
-    while (i < sage->table->number_of_time_each_must_eat)
+    sage->og_time = givetime(0);
+    sage->last_meal_time = sage->og_time;
+    while (1)
     {
-        gettimeofday(&sage->end, NULL);
-        count = (sage->end.tv_sec-sage->start.tv_sec) * 1000000 + sage->end.tv_usec-sage->start.tv_usec;
+        if (philo_dead(sage) == 0)
+            break ;
         if (sage->state == 0)
-            philo_eat(sage, count);
-        else if (sage->state == 1) // eating
-            philo_sleep(sage, count);
-        else if (sage->state == 2) // sleep
-            philo_think(sage, count);
-        else if (sage->last_meal_time >= sage->table->time_to_die || sage->table->number_of_time_each_must_eat == 0)
-            philo_dead(sage, count);
+            philo_eat(sage);
+        if (sage->state == 1)
+            philo_sleep(sage);
+        if (sage->state == 2)
+            philo_think(sage);
     }
-    pthread_exit(NULL);
+    return (NULL);
 }
 
 int     main(int argc, char **argv)
@@ -44,13 +57,10 @@ int     main(int argc, char **argv)
     t_table         table;
     pthread_mutex_t mutex;
     int             i;
-    int             j;
-    int             k;
 
     i = -1;
-    check_argv(argv);
-    load_arg(&table, argv);
-    print_table_struct(&table);
+    check_argv(argc, argv);
+    load_arg(argc, &table, argv);
     pthread_mutex_init(&mutex, NULL);
     pthread_mutex_lock(&mutex);
     while (++i < table.number_of_philos)
@@ -60,21 +70,22 @@ int     main(int argc, char **argv)
     i = -1;
     while (++i < table.number_of_philos)
         pthread_join(table.philos[i].threads, NULL);
-    printf("Done");
+    print_table_struct(&table);
     pthread_mutex_destroy(&mutex);
-    free_stuff(&table);
     exit (0);   
 }
 
-int    load_arg(t_table *table, char **argv)
+int    load_arg(int argc, t_table *table, char **argv)
 {
     int i;
 
-    set_argv(argv, table);
+    set_argv(argc ,argv, table);
     i = -1;
+    if (table->number_of_philos > 10)
+        table->number_of_philos = 10;
     while (++i < table->number_of_philos)
     {
-        table->philos[i].number = i;
+        table->philos[i].number = i + 1;
         if (i == 0)
             table->philos[i].l_fork = table->number_of_philos - 1;
         else
@@ -85,6 +96,7 @@ int    load_arg(t_table *table, char **argv)
             table->philos[i].r_fork = i;
         table->philos[i].table = table;
         table->philos[i].state = 0;
+        table->philos[i].last_meal_time = 0;
     }
     return (0);
 }
